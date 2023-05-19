@@ -1,16 +1,15 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using MassTransit;
 using Messages;
-using RabbitMQ;
 
-class ClientConsumer : IConsumer<IConfirmationCheck>, IConsumer<IAcceptOrder>
+class ClientConsumer : IConsumer<IConfirmationRequest>, IConsumer<IAcceptOrder>
 {
     private String ClientName;
     public ClientConsumer(String NameOfClient)
     {
         this.ClientName = NameOfClient;
     }
-    public Task Consume(ConsumeContext<IConfirmationCheck> context)
+    public Task Consume(ConsumeContext<IConfirmationRequest> context)
     {
         if(context.Message.ID == this.ClientName)
         {
@@ -22,7 +21,7 @@ class ClientConsumer : IConsumer<IConfirmationCheck>, IConsumer<IAcceptOrder>
             }
             return Task.Run(() =>
             {
-                context.RespondAsync(new Confirmation() { CorrelationId = context.Message.CorrelationId, HasConfirmed = odp });
+                context.RespondAsync(new ConfirmationResponse() { CorrelationId = context.Message.CorrelationId, HasConfirmed = odp });
             }
             );
         }
@@ -74,12 +73,12 @@ class Client
                 try
                 {
                     quantity = Convert.ToInt32(Console.ReadLine());
-                    bus.Publish(new SendReservationRequest() { ID = ClientName, Amount = quantity });
+                    bus.Publish(new ReservationRequest() { ID = ClientName, Amount = quantity });
                     Console.WriteLine();
                 }
                 catch(Exception) 
                 {
-                    Console.WriteLine("\nThere should be a number entered")
+                    Console.WriteLine("\nThere should be a number entered");
                 }
             }
         }

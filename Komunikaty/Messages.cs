@@ -3,12 +3,12 @@ using MassTransit;
 
 namespace Messages
 {
-    public interface ISendReservationRequest
+    public interface IReservationRequest
     {    
         string ID { get; set; }
         int Amount { get; set; }
     }
-    public class SendReservationRequest : ISendReservationRequest
+    public class ReservationRequest : IReservationRequest
     {
         public string ID { get; set; }
         public int Amount { get; set; }
@@ -24,27 +24,31 @@ namespace Messages
     }
     public interface IConfirmationRequest : CorrelatedBy<Guid>
     {
+        string ID { get; set; }
     }
     public class ConfirmationRequest : IConfirmationRequest
     {
+        public string ID { get; set; }
         public Guid CorrelationId { get; set; }
     }
-    public interface IConfirmation : CorrelatedBy<Guid>
+    public interface IConfirmationResponse : CorrelatedBy<Guid>
     {
         bool HasConfirmed { get; set; }
     }
 
-    public class Confirmation : IConfirmation
+    public class ConfirmationResponse : IConfirmationResponse
     {
         public bool HasConfirmed { get; set; }
         public Guid CorrelationId { get; set; }
     }
     public interface ICheckAmountRequest : CorrelatedBy<Guid>
     {
+        public int Amount { get; set; }
     }
     public class CheckAmountRequest : ICheckAmountRequest
     {
         public Guid CorrelationId { get; set; }
+        public int Amount { get; set; }
     }
     public interface ICheckAmountResponse : CorrelatedBy<Guid>
     {
@@ -58,11 +62,13 @@ namespace Messages
     public interface IAcceptOrder : CorrelatedBy<Guid>
     {
         bool HasAcceptedOrder { get; set; }
-        string ID { get; set; };
+        int Amount { get; set; }
+        string ID { get; set; }
     }
     public class AcceptOrder: IAcceptOrder
     {
         public bool HasAcceptedOrder { get; set; }
+        public int Amount { get; set; }
         public string ID { get; set; }
         public Guid CorrelationId { get; set; }
     }
