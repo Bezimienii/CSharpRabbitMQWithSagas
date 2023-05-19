@@ -84,6 +84,7 @@ class ShopOrdersManager : MassTransitStateMachine<OrderReservation>
             When(AmountAvailableResponse)
             .ThenAsync(ctx => Console.Out.WriteLineAsync($"A warehouse has the amount requested by the client {ctx.Saga.ID} " +
             $"in order {ctx.Saga.CorrelationId}"))
+            .Respond(ctx => { return new AcceptOrder() { CorrelationId = ctx.Saga.CorrelationId, Amount = ctx.Saga.Amount, ID = ctx.Saga.ID }; })
             .Finalize(),
 
             When(AmountNotAvailableResponse)
@@ -101,6 +102,7 @@ class ShopOrdersManager : MassTransitStateMachine<OrderReservation>
 
             When(PositiveConfirmationResponse)
             .ThenAsync(ctx => Console.Out.WriteLineAsync($"A client with ID {ctx.Saga.ID} has confirmed his choice"))
+            .Respond(ctx => { return new AcceptOrder() { CorrelationId = ctx.Saga.CorrelationId, Amount = ctx.Saga.Amount, ID = ctx.Saga.ID }; })
             .Unschedule(TO)
             .Finalize(),
 
@@ -118,7 +120,7 @@ class ShopOrdersManager : MassTransitStateMachine<OrderReservation>
 
 class Shop
 {
-    public void Main(string[] args)
+    public static void Main(string[] args)
     {
         var repository = new InMemorySagaRepository<OrderReservation>();
         var saga = new ShopOrdersManager();
@@ -127,7 +129,7 @@ class Shop
             sbc =>
             {
                 sbc.Host(
-                     new Uri("rabbitmq://localhost/user"),
+                     new Uri("rabbitmq://localhost/184543"),
                      h => { h.Username("guest"); h.Password("guest"); });
                 sbc.ReceiveEndpoint("saga",
                     ep => ep.StateMachineSaga(saga, repository));

@@ -24,7 +24,7 @@ class WarehouseConsumer : IConsumer<ICheckAmountRequest>, IConsumer<IAcceptOrder
             else
             {
                 Console.Out.WriteLineAsync($"A client has filed a request for goods, but there are not enough goods!");
-                context.RespondAsync(new AmountAvailableResponse() { CorrelationId = context.Message.CorrelationId });
+                context.RespondAsync(new AmountNotAvailableResponse() { CorrelationId = context.Message.CorrelationId });
             }
         }));
         
@@ -60,13 +60,14 @@ class Warehouse
             sbc =>
             {
                 sbc.Host(
-                    new Uri("rabbitmq://localhost/username"),
+                    new Uri("rabbitmq://localhost/184543"),
                     h => { h.Username("guest"); h.Password("guest"); }
                 );
                 sbc.ReceiveEndpoint(WarehouseName,
                     ep => ep.Instance(warehouse));
             }
         );
+        Console.WriteLine("Warehouse is open\n");
         bus.Start();
         while (true)
         {

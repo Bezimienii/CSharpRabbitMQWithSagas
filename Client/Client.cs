@@ -2,7 +2,7 @@
 using MassTransit;
 using Messages;
 
-class ClientConsumer : IConsumer<IConfirmationRequest>, IConsumer<IAcceptOrder>
+class ClientConsumer : IConsumer<IConfirmationRequest>, IConsumer<IAcceptOrder>, IConsumer<IRejectOrder>
 {
     private String ClientName;
     public ClientConsumer(String NameOfClient)
@@ -19,11 +19,20 @@ class ClientConsumer : IConsumer<IConfirmationRequest>, IConsumer<IAcceptOrder>
             {
                 odp = true;
             }
-            return Task.Run(() =>
+            if( odp )
             {
-                context.RespondAsync(new ConfirmationResponse() { CorrelationId = context.Message.CorrelationId, HasConfirmed = odp });
+                return Task.Run(() =>
+                {
+                    context.RespondAsync(new PositiveConfirmationResponse() { CorrelationId = context.Message.CorrelationId });
+                });
             }
-            );
+            else
+            {
+                return Task.Run(() =>
+                {
+                    context.RespondAsync(new NegativeConfirmationResponse() { CorrelationId = context.Message.CorrelationId });
+                });
+            }
         }
         else
         {
@@ -35,8 +44,19 @@ class ClientConsumer : IConsumer<IConfirmationRequest>, IConsumer<IAcceptOrder>
     {
         if(context.Message.ID == this.ClientName)
         {
-            String OrderStatus = context.Message.HasAcceptedOrder ? "zaakceptowany" : "odrzucony";
-            return Console.Out.WriteLineAsync($"Order has been {OrderStatus}");
+            return Console.Out.WriteLineAsync($"Order has been accepted");
+        }
+        else
+        {
+            return Task.Run(() => { });
+        }
+    }
+
+    public Task Consume(ConsumeContext<IRejectOrder> context)
+    {
+        if (context.Message.ID == this.ClientName)
+        {
+            return Console.Out.WriteLineAsync($"Order has been rejected for order {context.Message.CorrelationId}");
         }
         else
         {
@@ -55,13 +75,14 @@ class Client
             sbc =>
             {
                 sbc.Host(
-                    new Uri("rabbitmq://localhost/username"),
+                    new Uri("rabbitmq://localhost/184543"),
                     h => { h.Username("guest"); h.Password("guest"); }
                 );
                 sbc.ReceiveEndpoint(ClientName,
                     ep => ep.Instance(queue));
             }
         );
+        Console.WriteLine("Client has connected\n");
         bus.Start();
         while(true)
         {
