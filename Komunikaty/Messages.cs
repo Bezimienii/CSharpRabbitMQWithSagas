@@ -31,14 +31,20 @@ namespace Messages
         public string ID { get; set; }
         public Guid CorrelationId { get; set; }
     }
-    public interface IConfirmationResponse : CorrelatedBy<Guid>
+    public interface IPositiveConfirmationResponse : CorrelatedBy<Guid>
     {
-        bool HasConfirmed { get; set; }
     }
 
-    public class ConfirmationResponse : IConfirmationResponse
+    public class PositiveConfirmationResponse : IPositiveConfirmationResponse
     {
-        public bool HasConfirmed { get; set; }
+        public Guid CorrelationId { get; set; }
+    }
+    public interface INegativeConfirmationResponse : CorrelatedBy<Guid>
+    {
+    }
+
+    public class NegativeConfirmationResponse : INegativeConfirmationResponse
+    {
         public Guid CorrelationId { get; set; }
     }
     public interface ICheckAmountRequest : CorrelatedBy<Guid>
@@ -50,24 +56,38 @@ namespace Messages
         public Guid CorrelationId { get; set; }
         public int Amount { get; set; }
     }
-    public interface ICheckAmountResponse : CorrelatedBy<Guid>
+    public interface IAmountAvailableResponse : CorrelatedBy<Guid>
     {
-        bool IsAmountAvailable { get; set; }
     }
-    public class CheckAmountResponse : ICheckAmountResponse
+    public class AmountAvailableResponse : IAmountAvailableResponse
     {
-        public bool IsAmountAvailable { get; set; }
+        public Guid CorrelationId { get; set; }
+    }
+    public interface IAmountNotAvailableResponse : CorrelatedBy<Guid>
+    {
+    }
+    public class AmountNotAvailableResponse : IAmountNotAvailableResponse
+    {
         public Guid CorrelationId { get; set; }
     }
     public interface IAcceptOrder : CorrelatedBy<Guid>
     {
-        bool HasAcceptedOrder { get; set; }
         int Amount { get; set; }
         string ID { get; set; }
     }
     public class AcceptOrder: IAcceptOrder
     {
-        public bool HasAcceptedOrder { get; set; }
+        public int Amount { get; set; }
+        public string ID { get; set; }
+        public Guid CorrelationId { get; set; }
+    }
+    public interface IRejectOrder: CorrelatedBy<Guid>
+    {
+        public int Amount { get; set; }
+        public string ID { get; set; }
+    }
+    public class RejectOrder: IRejectOrder
+    {
         public int Amount { get; set; }
         public string ID { get; set; }
         public Guid CorrelationId { get; set; }

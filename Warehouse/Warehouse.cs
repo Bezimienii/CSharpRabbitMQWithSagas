@@ -2,7 +2,7 @@
 using MassTransit;
 using Messages;
 
-class WarehouseConsumer : IConsumer<ICheckAmountRequest>, IConsumer<IAcceptOrder>
+class WarehouseConsumer : IConsumer<ICheckAmountRequest>, IConsumer<IAcceptOrder>, IConsumer<IRejectOrder>
 {
     public int FreeGoods { get; set; } = 0;
     public int ReservedGoods { get; set; } = 0; 
@@ -18,13 +18,13 @@ class WarehouseConsumer : IConsumer<ICheckAmountRequest>, IConsumer<IAcceptOrder
                 this.FreeGoods -= context.Message.Amount;
                 this.ReservedGoods += context.Message.Amount;
                 Console.Out.WriteLineAsync($"A client has filed a request for goods, and it can be realized!");
-                context.RespondAsync(new CheckAmountResponse() { CorrelationId = context.Message.CorrelationId, IsAmountAvailable = true });
+                context.RespondAsync(new AmountAvailableResponse() { CorrelationId = context.Message.CorrelationId});
 
             }
             else
             {
                 Console.Out.WriteLineAsync($"A client has filed a request for goods, but there are not enough goods!");
-                context.RespondAsync(new CheckAmountResponse() { CorrelationId = context.Message.CorrelationId, IsAmountAvailable = false });
+                context.RespondAsync(new AmountAvailableResponse() { CorrelationId = context.Message.CorrelationId });
             }
         }));
         
@@ -35,12 +35,17 @@ class WarehouseConsumer : IConsumer<ICheckAmountRequest>, IConsumer<IAcceptOrder
         return Task.Run(() =>
         {
             this.ReservedGoods -= context.Message.Amount;
-            if(!context.Message.HasAcceptedOrder)
-            {
-                this.FreeGoods += context.Message.Amount;
-            }
-            String OrderRealizationStatus = context.Message.HasAcceptedOrder ? "been realized" : "not been realized";
-            Console.Out.WriteLineAsync($"The order {context.Message.CorrelationId} has {OrderRealizationStatus}");
+            Console.Out.WriteLineAsync($"The order has been realized");
+        });
+    }
+
+    public Task Consume(ConsumeContext<IRejectOrder> context)
+    {
+        return Task.Run(() =>
+        {
+            this.ReservedGoods -= context.Message.Amount;
+            this.FreeGoods += context.Message.Amount;
+            Console.Out.WriteLineAsync($"The order has not been realized");
         });
     }
 }
