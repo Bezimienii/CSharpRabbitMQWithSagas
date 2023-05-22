@@ -1,5 +1,7 @@
 # CSharpRabbitMQWithSagas
 
+Project was made with MassTransit Library.
+
 The idea of project is to implement a client, shop and a warehouse that communicate with each other through queues.
 
 Client can ask for goods, and if available he can get them. If amount is not available, then order is rejected.
